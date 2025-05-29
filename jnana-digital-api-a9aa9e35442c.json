@@ -1,0 +1,13 @@
+{
+  "type": "service_account",
+  "project_id": "jnana-digital-api",
+  "private_key_id": "a9aa9e35442ce334ee68d4d567a70e04750582cb",
+  "private_key": "-----BEGIN PRIVATE KEY-----\nMIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQCik1QuFx0KiY93\n1Q9BUk3wZcK0zcPE/Iuye8+qPOO3KaeTiGsPzRICxQjmmMb/wXzqsg7wkuU6Iqdp\nz2FCWFR4oWMFQC3L8GVVkj6T/ukvzuCi/B8HQGm98zdhf1qu7CxFrgwUsiuhDwRH\nVMJbzG03EXyPVMIlnFQ1otQXYyzHKAOSbgzKF6WtmIZLS03pp4fQ6u7RENQMmJ/P\nFubITsK/ATMjzYa9ALrvYZ4Ay9DW1GkZ9Yo4MyyT3KfTEFdDbPUyMKliDbQ5o+iN\n8jGaspqMwRnUyGFsQkn52gze/0BW0Xpgh/VYT4OZPURKAc5akax27h6ygv4cVwK2\nvq4nA5HBAgMBAAECggEADsR1NA6Ta76dEpR+4z8Xp0uHCSdbrgwGoHrQnTUUtjGJ\ncERG/VNyXGALc+7SvK6VqzfrVXzyZ3p4XIsi2YTuf1qhhPuUbV7zxXcYShcwlVAk\nZYmjQ+Rc9o0eLbQEx7jaOKYboNGiVunnSJdxZCdIkGT9PIPFcuclWw3kWA+BJMHf\ncnBG6jjj+2vo2EPOT7ge2peP6fAtRZbzdkCo6j0HHzvX9+5fQBVlPjdT1whbvh7e\n0B1Pr3S9YGqrLO6/iUQsvPj0GwMYxSQ1KEGrGl3bfP1D7wHxMKExhvV4ne/m2K4T\nuPY7rSBlMPlFkVzO8fRIScWD2rlHYuRYB/K0ZEXTwQKBgQDjI7q9tXFOvShrdwhD\n2nCM3QrYIF8/5C90MJVNUrIXzK8kzBNirws9fN7lKRj7jvvlf20lqDqrv++dJpZX\nuI6ebaCNo4Tlm0leXkB4UJzG4USD/Z+E6Djg/Hpyyv8wndpjE7B0AtKSM24desDB\nlpif5z0Ckj2jRoy4LeZ1D4FjyQKBgQC3O36+Ty+ZG7RBAj9m96xa8ulQCQ/gXsH4\nb6uQTdYP3VYW8/y+2P5rtBwG9ukc/Wxc8bISZITUuJLhflZI/epWM9OI2H/1Lres\nLqBrwKXPEzjFpg4Py1z1j8zvYStVD+vvkC/vn11zYaky/szBTfYdSY/BVdj7MBv1\nSfwdyRqKOQKBgQC68WY5y0MFjjPdNuvLhNaLaUYKmaIrYLAZzf6j1EMVyXYBMCFo\nYC89HTAKpeeU65qwyU7Y5nvbba5VxjOI4TIofIve501y+HrLO4GORLK0ESWmCLEo\n30QpEEPrhN3BcroSP1tEMCqE/+VKSASrkDnvqY8SNbCbWG5rDAQYJnnU2QKBgHgG\nB8q/cg1X4WYoA8H+AK9+qKfdl8HAMEz9USNwaQTxVkAoyGl3GIkSbL1/JUnxEvd6\n9ssnfv8cfFIrAHhFoyeeQTVFo+PGG1g1Hq4WfkY7cBe/4zwjWRwdev9e5hSNHl5J\nU60h9gPrd/rIfvUsjUe39OuOwVggtl+he/1Cyxi5AoGAQS0dK0AyYIOvDo7q5K33\n4YGceAaFbRdKhYwPL9v6rx5NGyexa+meKGrPcTf83vXPhRpCiSQYxuI2Dc5rb9ab\noaTWmb+Ii5RaRyhaUZ1LGqQ0t8r76zcEWnNAZQyU0tdQ5M2kQC0OvyAtjU+GTTdX\nlVZBzGQwBdl76sl8OJqLDK8=\n-----END PRIVATE KEY-----\n",
+  "client_email": "netlify-sheets-access@jnana-digital-api.iam.gserviceaccount.com",
+  "client_id": "117747001359731701251",
+  "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+  "token_uri": "https://oauth2.googleapis.com/token",
+  "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
+  "client_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/netlify-sheets-access%40jnana-digital-api.iam.gserviceaccount.com",
+  "universe_domain": "googleapis.com"
+}
