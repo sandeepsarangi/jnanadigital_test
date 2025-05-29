@@ -1,5 +1,4 @@
 // IMPORTANT: This API_BASE_URL now points to your Netlify Function endpoint.
-// It should now point to '/.netlify/functions/index' since you renamed the file to index.js
 const API_BASE_URL = "/.netlify/functions/index"; 
 
 let user = null;
@@ -225,7 +224,7 @@ function goBack() {
     checkExistingAttendance();
 }
 
-// --- NEW: Attendance Reports Screen Functions (Phase 2) ---
+// --- NEW: Attendance Reports Screen Functions (Phase 2 & 3) ---
 function showAttendanceReportsScreen() {
     showScreen("attendance-reports-screen");
     const reportsVillageFilters = document.getElementById("reports-village-filters");
@@ -316,13 +315,213 @@ async function generateAttendanceReport(villageName = "all") {
         studentData = await makeNetlifyFunctionRequest('GET', null, { sheet: 'Students', village: villageName });
     }
 
-    // --- Report Calculation (Placeholder) ---
+    // --- Data Processing for Charts and Stats ---
+    const totalStudentsInScope = studentData.length;
+    const dailyStats = {}; // { 'YYYY-MM-DD': { present: N, total: N, percentage: X } }
+    const monthlyStats = {}; // { 'YYYY-MM': { totalSessions: N, presentSessions: N } }
+    const weeklyStats = {}; // { 'YYYY-WW': { totalSessions: N, presentSessions: N } }
+
+    attendanceData.forEach(record => {
+        const date = record.date; // YYYY-MM-DD
+        const [year, month, day] = date.split('-').map(Number);
+        const dateObj = new Date(year, month - 1, day); // Month is 0-indexed
+
+        // Daily Stats
+        if (!dailyStats[date]) {
+            dailyStats[date] = { present: 0, absent: 0, total_students_sheet: totalStudentsInScope }; // total_students_sheet is a baseline
+        }
+        if (record.present === 'Y') {
+            dailyStats[date].present++;
+        } else {
+            dailyStats[date].absent++;
+        }
+
+        // Monthly Stats (YYYY-MM)
+        const monthKey = `${year}-${String(month).padStart(2, '0')}`;
+        if (!monthlyStats[monthKey]) {
+            monthlyStats[monthKey] = { totalSessions: 0, presentSessions: 0 };
+        }
+        monthlyStats[monthKey].totalSessions++;
+        if (record.present === 'Y') {
+            monthlyStats[monthKey].presentSessions++;
+        }
+
+        // Weekly Stats (YYYY-WW)
+        // Simple week number calculation (might vary based on locale/standard)
+        const startOfYear = new Date(dateObj.getFullYear(), 0, 1);
+        const weekNumber = Math.ceil((((dateObj - startOfYear) / 86400000) + startOfYear.getDay() + 1) / 7); // Approx week number
+        const weekKey = `${year}-${String(weekNumber).padStart(2, '0')}`;
+        if (!weeklyStats[weekKey]) {
+            weeklyStats[weekKey] = { totalSessions: 0, presentSessions: 0 };
+        }
+        weeklyStats[weekKey].totalSessions++;
+        if (record.present === 'Y') {
+            weeklyStats[weekKey].presentSessions++;
+        }
+    });
+
+    // Calculate daily percentages and labels for chart
+    const dailyChartLabels = Object.keys(dailyStats).sort();
+    const dailyChartData = dailyChartLabels.map(date => {
+        const stats = dailyStats[date];
+        // Calculate daily percentage based on students in sheet or recorded sessions
+        // Using recorded sessions (present + absent) as 'total' for the day for now,
+        // as knowing exact active students per day is complex without more data.
+        const totalRecorded = stats.present + stats.absent;
+        return totalRecorded > 0 ? (stats.present / totalRecorded) * 100 : 0;
+    });
+
+    // Calculate monthly averages
+    const monthlyAvgLabels = Object.keys(monthlyStats).sort();
+    const monthlyAvgData = monthlyAvgLabels.map(monthKey => {
+        const stats = monthlyStats[monthKey];
+        return stats.totalSessions > 0 ? (stats.presentSessions / stats.totalSessions) * 100 : 0;
+    });
+
+    // Calculate weekly averages
+    const weeklyAvgLabels = Object.keys(weeklyStats).sort();
+    const weeklyAvgData = weeklyAvgLabels.map(weekKey => {
+        const stats = weeklyStats[weekKey];
+        return stats.totalSessions > 0 ? (stats.presentSessions / stats.totalSessions) * 100 : 0;
+    });
+
+    // --- Render Report HTML ---
     let reportHtml = `<h3>Report for ${villageName === 'all' ? 'All Assigned Villages' : villageName}</h3>`;
-    reportHtml += `<p>Total students in selected scope: ${studentData.length}</p>`;
-    reportHtml += `<p>Total attendance records: ${attendanceData.length}</p>`;
-    reportHtml += `<p>Daily, weekly, monthly averages will appear here.</p>`;
+    reportHtml += `<p><strong>Total Unique Students in Scope:</strong> ${totalStudentsInScope}</p>`;
+    reportHtml += `<p><strong>Total Attendance Records Processed:</strong> ${attendanceData.length}</p>`;
+
+    // Display Monthly Average
+    const currentMonthKey = `${new Date().getFullYear()}-${String(new Date().getMonth() + 1).padStart(2, '0')}`;
+    const currentMonthStats = monthlyStats[currentMonthKey];
+    if (currentMonthStats) {
+        const avg = currentMonthStats.totalSessions > 0 ? (currentMonthStats.presentSessions / currentMonthStats.totalSessions) * 100 : 0;
+        reportHtml += `<p><strong>Current Month Avg Attendance:</strong> ${avg.toFixed(2)}%</p>`;
+    }
+
+    // Display Last 7 Days Average
+    const last7DaysTotal = dailyStats[dailyChartLabels[dailyChartLabels.length -1]]?.total_students_sheet || 0; // Use last known total students
+    const last7DaysPresent = dailyChartLabels.slice(-7).reduce((sum, date) => sum + dailyStats[date].present, 0);
+    const last7DaysTotalSessions = dailyChartLabels.slice(-7).reduce((sum, date) => sum + dailyStats[date].present + dailyStats[date].absent, 0);
+
+    const avgLast7Days = last7DaysTotalSessions > 0 ? (last7DaysPresent / last7DaysTotalSessions) * 100 : 0;
+    reportHtml += `<p><strong>Last 7 Days Avg Attendance:</strong> ${avgLast7Days.toFixed(2)}%</p>`;
+
+
+    // Add canvas elements for charts
+    reportHtml += `
+        <div class="chart-container">
+            <h4>Daily Attendance Trend (Last 30 Days)</h4>
+            <canvas id="dailyAttendanceChart"></canvas>
+        </div>
+        <div class="chart-container">
+            <h4>Monthly Average Attendance</h4>
+            <canvas id="monthlyAvgChart"></canvas>
+        </div>
+        <div class="chart-container">
+            <h4>Weekly Average Attendance</h4>
+            <canvas id="weeklyAvgChart"></canvas>
+        </div>
+    `;
 
     reportsStatsContainer.innerHTML = reportHtml;
+
+    // --- Render Charts ---
+    // Destroy previous chart instances if they exist to prevent memory leaks/errors
+    if (window.dailyChartInstance) window.dailyChartInstance.destroy();
+    if (window.monthlyChartInstance) window.monthlyChartInstance.destroy();
+    if (window.weeklyChartInstance) window.weeklyChartInstance.destroy();
+
+
+    // Daily Attendance Line Chart
+    const dailyCtx = document.getElementById('dailyAttendanceChart').getContext('2d');
+    window.dailyChartInstance = new Chart(dailyCtx, {
+        type: 'line',
+        data: {
+            labels: dailyChartLabels.slice(-30), // Last 30 days
+            datasets: [{
+                label: 'Attendance %',
+                data: dailyChartData.slice(-30),
+                borderColor: '#4f46e5',
+                backgroundColor: 'rgba(79, 70, 229, 0.2)',
+                fill: true,
+                tension: 0.1
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false, // Allow charts to resize more freely
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    max: 100,
+                    title: {
+                        display: true,
+                        text: 'Attendance %'
+                    }
+                }
+            }
+        }
+    });
+
+    // Monthly Average Bar Chart
+    const monthlyCtx = document.getElementById('monthlyAvgChart').getContext('2d');
+    window.monthlyChartInstance = new Chart(monthlyCtx, {
+        type: 'bar',
+        data: {
+            labels: monthlyAvgLabels,
+            datasets: [{
+                label: 'Avg Attendance %',
+                data: monthlyAvgData,
+                backgroundColor: '#22c55e', // Green
+                borderColor: '#16a34a',
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    max: 100,
+                    title: {
+                        display: true,
+                        text: 'Attendance %'
+                    }
+                }
+            }
+        }
+    });
+
+    // Weekly Average Bar Chart
+    const weeklyCtx = document.getElementById('weeklyAvgChart').getContext('2d');
+    window.weeklyChartInstance = new Chart(weeklyCtx, {
+        type: 'bar',
+        data: {
+            labels: weeklyAvgLabels,
+            datasets: [{
+                label: 'Avg Attendance %',
+                data: weeklyAvgData,
+                backgroundColor: '#ef4444', // Red
+                borderColor: '#b91c1c',
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    max: 100,
+                    title: {
+                        display: true,
+                        text: 'Attendance %'
+                    }
+                }
+            }
+        }
+    });
 }
 
 // --- Attendance Marking Functions ---
