@@ -395,3 +395,64 @@ button.add-button:hover {
     width: 100%;
     margin-top: 20px; /* Space above buttons */
 }
+
+/* Reports screen specific styles */
+#reports-village-filters {
+    display: flex;
+    flex-wrap: wrap; /* Allow buttons to wrap on smaller screens */
+    gap: 10px; /* Space between filter buttons */
+    margin-bottom: 20px;
+    justify-content: center; /* Center buttons */
+}
+
+.village-filter-button {
+    background: #e0e7ff; /* Light blue background */
+    color: #4f46e5; /* Dark blue text */
+    border: 1px solid #6366f1; /* Blue border */
+    padding: 8px 15px;
+    border-radius: 0.5rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease-in-out;
+    flex-shrink: 0; /* Prevent shrinking */
+}
+
+.village-filter-button:hover {
+    background: #c7d2fe;
+    transform: translateY(-1px);
+}
+
+.village-filter-button.active {
+    background: #4f46e5; /* Active button is dark blue */
+    color: white;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    transform: translateY(-1px);
+}
+
+#reports-stats-container {
+    text-align: left; /* Align report stats to the left */
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #e5e7eb;
+    border-radius: 0.75rem;
+    background-color: #fcfcfc;
+    min-height: 150px; /* Give some minimum height */
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    align-items: flex-start;
+}
+
+#reports-stats-container h3 {
+    width: 100%;
+    text-align: center;
+    margin-top: 0;
+    margin-bottom: 15px;
+    color: #1f2937;
+}
+
+#reports-stats-container p {
+    margin-bottom: 8px;
+    color: #374151;
+    font-size: 1rem;
+}

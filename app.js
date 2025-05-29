@@ -1,4 +1,5 @@
 // IMPORTANT: This API_BASE_URL now points to your Netlify Function endpoint.
+// It should now point to '/.netlify/functions/index' since you renamed the file to index.js
 const API_BASE_URL = "/.netlify/functions/index"; 
 
 let user = null;
@@ -224,14 +225,104 @@ function goBack() {
     checkExistingAttendance();
 }
 
-// --- NEW: Placeholder for Attendance Reports Screen ---
+// --- NEW: Attendance Reports Screen Functions (Phase 2) ---
 function showAttendanceReportsScreen() {
     showScreen("attendance-reports-screen");
-    document.getElementById("reports-content").innerHTML = '<p class="loading-text">Loading reports...</p>';
-    // This function will be expanded in Phase 2 & 3
-    document.getElementById("reports-village-filters").innerHTML = '<p>Village filters will appear here.</p>';
-    document.getElementById("reports-stats-container").innerHTML = '<p>Statistics will appear here.</p>';
-    document.getElementById("reports-content").innerHTML = '<p class="loading-text">Reports functionality coming soon!</p>'; // Placeholder message
+    const reportsVillageFilters = document.getElementById("reports-village-filters");
+    const reportsStatsContainer = document.getElementById("reports-stats-container");
+    
+    reportsVillageFilters.innerHTML = '<p class="loading-text">Loading filters...</p>';
+    reportsStatsContainer.innerHTML = '<p class="loading-text">Select a village to view reports.</p>';
+
+    // Build village filter buttons
+    const villages = user.assignedVillages || [];
+    let filterButtonsHtml = '';
+
+    if (villages.length === 0) {
+        reportsVillageFilters.innerHTML = '<p class="loading-text">No villages assigned for reports.</p>';
+        return;
+    }
+
+    // Add an "All Villages" button if there are multiple villages
+    if (villages.length > 1) {
+        filterButtonsHtml += `<button class="village-filter-button active" data-village="all">All Villages</button>`;
+    }
+
+    // Add buttons for each assigned village
+    villages.forEach(village => {
+        filterButtonsHtml += `<button class="village-filter-button" data-village="${village}">${village}</button>`;
+    });
+
+    reportsVillageFilters.innerHTML = filterButtonsHtml;
+
+    // Add event listeners to filter buttons
+    document.querySelectorAll('.village-filter-button').forEach(button => {
+        button.addEventListener('click', (event) => {
+            // Remove active class from all buttons
+            document.querySelectorAll('.village-filter-button').forEach(btn => btn.classList.remove('active'));
+            // Add active class to clicked button
+            event.target.classList.add('active');
+
+            const selectedVillage = event.target.dataset.village;
+            generateAttendanceReport(selectedVillage); // Trigger report generation
+        });
+    });
+
+    // Automatically load report for the first village or "All" by default
+    if (villages.length > 0) {
+        const defaultReportVillage = villages.length > 1 ? "all" : villages[0];
+        // Ensure "All Villages" button is active if selected
+        if (defaultReportVillage === "all") {
+             document.querySelector('.village-filter-button[data-village="all"]').classList.add('active');
+        } else {
+             document.querySelector(`.village-filter-button[data-village="${defaultReportVillage}"]`).classList.add('active');
+        }
+        generateAttendanceReport(defaultReportVillage);
+    } else {
+        reportsStatsContainer.innerHTML = '<p>No data to display reports.</p>';
+    }
+}
+
+// Placeholder for report generation (will be expanded in Phase 3)
+async function generateAttendanceReport(villageName = "all") {
+    const reportsStatsContainer = document.getElementById("reports-stats-container");
+    reportsStatsContainer.innerHTML = `<p class="loading-text">Generating report for ${villageName === 'all' ? 'all villages' : villageName}...</p>`;
+
+    // Fetch all attendance data (filtered by village if not "all")
+    let attendanceData = [];
+    if (villageName === 'all') {
+        // Fetch attendance for all assigned villages
+        if (user.assignedVillages && user.assignedVillages.length > 0) {
+            for (const village of user.assignedVillages) {
+                const data = await makeNetlifyFunctionRequest('GET', null, { sheet: 'Attendance', village: village });
+                attendanceData = attendanceData.concat(data);
+            }
+        }
+    } else {
+        attendanceData = await makeNetlifyFunctionRequest('GET', null, { sheet: 'Attendance', village: villageName });
+    }
+
+    // Fetch all student data (filtered by village if not "all")
+    let studentData = [];
+     if (villageName === 'all') {
+        // Fetch students for all assigned villages
+        if (user.assignedVillages && user.assignedVillages.length > 0) {
+            for (const village of user.assignedVillages) {
+                const data = await makeNetlifyFunctionRequest('GET', null, { sheet: 'Students', village: village });
+                studentData = studentData.concat(data);
+            }
+        }
+    } else {
+        studentData = await makeNetlifyFunctionRequest('GET', null, { sheet: 'Students', village: villageName });
+    }
+
+    // --- Report Calculation (Placeholder) ---
+    let reportHtml = `<h3>Report for ${villageName === 'all' ? 'All Assigned Villages' : villageName}</h3>`;
+    reportHtml += `<p>Total students in selected scope: ${studentData.length}</p>`;
+    reportHtml += `<p>Total attendance records: ${attendanceData.length}</p>`;
+    reportHtml += `<p>Daily, weekly, monthly averages will appear here.</p>`;
+
+    reportsStatsContainer.innerHTML = reportHtml;
 }
 
 // --- Attendance Marking Functions ---
@@ -448,7 +539,7 @@ async function buildDynamicStudentForm(studentData = null) {
             'gender': { label: 'Gender', type: 'select', options: ['M', 'F'], required: true },
             'village': { label: 'Village', type: 'select', options: user.assignedVillages, required: true, readOnly: false },
             'notes': { label: 'Notes (max 100 chars)', type: 'textarea', maxLength: 100, required: false },
-            'record_added': { label: 'Record Added Date', type: 'date', required: false }
+            'record_added': { label: 'Record Added Date', type: 'date', required: false } 
         };
 
         let formHtml = '';
