@@ -6,15 +6,34 @@
   <title>📋 Attendance App</title>
   <link rel="stylesheet" href="style.css">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+  <script src="https://accounts.google.com/gsi/client" async defer></script>
 </head>
 <body>
   <div class="background-gradient">
     <div class="login-screen" id="login-screen">
       <div class="card">
-        <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/3/36/Emoji_u1f4dd.svg/64px-Emoji_u1f4dd.svg.png" class="logo" onerror="this.style.display='none'" alt="Clipboard Logo" />
+        <img src="JnanaLogo-min.png" class="main-logo" onerror="this.style.display='none'" alt="Jnana Logo - Lighting a bulb" />
         <h2>🔐 Jnana Login</h2>
-        <input type="email" id="email" placeholder="Enter your email" />
-        <button onclick="login()">Login</button>
+        
+        <div id="g_id_onload"
+             data-client_id="706534157986-21k4tsoda92pkrkdai0f9nlfe6oo0k16.apps.googleusercontent.com"
+             data-context="signin"
+             data-ux_mode="popup"
+             data-callback="handleCredentialResponse"
+             data-auto_prompt="false">
+        </div>
+        <div class="g_id_signin"
+             data-type="standard"
+             data-shape="rectangular"
+             data-theme="outline"
+             data-text="signin_with"
+             data-size="large"
+             data-width="300"
+             data-locale="en-US">
+        </div>
+        
+        <button id="signout-button" onclick="signOut()" style="display:none; margin-top: 20px;">Sign Out</button>
+
       </div>
     </div>
 

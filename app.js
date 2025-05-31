@@ -4,6 +4,107 @@ const API_BASE_URL = "/.netlify/functions/index";
 let user = null;
 let attendanceExists = false; // Flag to check if attendance for current date/session is already submitted
 
+// --- Google Authentication Callbacks ---
+// This function is called by Google's library after a successful sign-in.
+async function handleCredentialResponse(response) {
+    if (response.credential) {
+        // Decode the ID token to get user information
+        const idToken = response.credential;
+        const decodedToken = parseJwt(idToken); // Helper to decode JWT
+
+        const userEmail = decodedToken.email.toLowerCase();
+        const userName = decodedToken.name || decodedToken.email; // Use name if available, else email
+
+        // Now, use this authenticated email to log into your app's user system
+        // This replaces the old email input and login button
+        console.log("Google Sign-In successful for:", userEmail);
+        await appLogin(userEmail, userName); // Call your app's login logic
+    } else {
+        console.error("Google Sign-In failed or credential not received.");
+        alert("Google Sign-In failed. Please try again.");
+    }
+}
+
+// Helper function to decode JWT (ID Token)
+function parseJwt(token) {
+    try {
+        var base64Url = token.split('.')[1];
+        var base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+        var jsonPayload = decodeURIComponent(window.atob(base64).split('').map(function(c) {
+            return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+        }).join(''));
+
+        return JSON.parse(jsonPayload);
+    } catch (e) {
+        console.error("Error decoding JWT:", e);
+        return {};
+    }
+}
+
+// Your app's actual login logic, now called after Google Auth
+async function appLogin(email, name) {
+    try {
+        // API call to Netlify Function for Users sheet
+        const data = await makeNetlifyFunctionRequest('GET', null, { sheet: 'Users', email: email });
+
+        if (!data.length || (data[0].role !== 'teacher' && data[0].role !== 'sponsor')) {
+            alert("Authentication failed or not authorized as a teacher/sponsor.");
+            return;
+        }
+        user = data[0]; // Store user data globally
+        user.name = name; // Use name from Google profile if available
+
+        // If sponsor, parse assigned villages
+        if (user.role === 'sponsor' && user.village) {
+            user.assignedVillages = user.village.split(',').map(v => v.trim());
+        } else {
+            user.assignedVillages = [user.village]; // Even for teachers, make it an array for consistency
+        }
+
+
+        // Show dashboard and set welcome message
+        document.getElementById("dashboard-welcome").innerText = `👋 Welcome, ${user.name}`;
+
+        // Adjust dashboard options based on role
+        const attendanceReportsBtn = document.getElementById("dashboard-reports-btn");
+        if (user.role === 'sponsor') {
+            attendanceReportsBtn.style.display = 'flex'; // Show reports button for sponsors
+        } else {
+            attendanceReportsBtn.style.display = 'none'; // Hide reports button for teachers
+        }
+
+        showScreen("teacher-dashboard-screen");
+
+        // Show sign-out button
+        document.getElementById('signout-button').style.display = 'block';
+
+        // Initialize date for attendance screen (for when it's accessed)
+        document.getElementById("date").valueAsDate = new Date();
+        // Set up event listeners for attendance check (for when it's accessed)
+        // These listeners will now be set up in showAttendanceScreen
+    } catch (error) {
+        console.error("App Login error:", error);
+        alert("An error occurred during app login. Please try again.");
+    }
+}
+
+function signOut() {
+    // Google Identity Services (GIS) library provides a global sign-out mechanism
+    // This removes the user's session in the browser.
+    google.accounts.id.disableAutoSelect(); // Prevent auto-relogin
+    google.accounts.id.revoke(user.email, () => {
+        user = null; // Clear local user data
+        alert("You have been signed out.");
+        // Redirect to login screen
+        showScreen('login-screen');
+        // Hide sign-out button
+        document.getElementById('signout-button').style.display = 'none';
+        // Clear dashboard welcome message
+        document.getElementById("dashboard-welcome").innerText = "";
+    });
+}
+
+
 // --- Helper for making Netlify Function requests ---
 async function makeNetlifyFunctionRequest(method = 'GET', data = null, queryParams = {}) {
     let url = `${API_BASE_URL}`; // Base URL is now the function path
@@ -52,53 +153,8 @@ function showScreen(screenId) {
   document.getElementById(screenId).style.display = 'flex';
 }
 
-function login() {
-  const email = document.getElementById("email").value.toLowerCase();
-  if (!email) {
-      alert("Please enter your email.");
-      return;
-  }
-
-  // API call to Netlify Function for Users sheet
-  makeNetlifyFunctionRequest('GET', null, { sheet: 'Users', email: email })
-    .then(data => {
-      if (!data.length || (data[0].role !== 'teacher' && data[0].role !== 'sponsor')) {
-        alert("Authentication failed or not authorized as a teacher/sponsor.");
-        return;
-      }
-      user = data[0]; // Store user data globally
-
-      // If sponsor, parse assigned villages
-      if (user.role === 'sponsor' && user.village) {
-          user.assignedVillages = user.village.split(',').map(v => v.trim());
-      } else {
-          user.assignedVillages = [user.village]; // Even for teachers, make it an array for consistency
-      }
-
-
-      // Show dashboard and set welcome message
-      document.getElementById("dashboard-welcome").innerText = `👋 Welcome, ${user.name}`;
-
-      // Adjust dashboard options based on role
-      const attendanceReportsBtn = document.getElementById("dashboard-reports-btn");
-      if (user.role === 'sponsor') {
-          attendanceReportsBtn.style.display = 'flex'; // Show reports button for sponsors
-      } else {
-          attendanceReportsBtn.style.display = 'none'; // Hide reports button for teachers
-      }
-
-      showScreen("teacher-dashboard-screen");
-
-      // Initialize date for attendance screen (for when it's accessed)
-      document.getElementById("date").valueAsDate = new Date();
-      // Set up event listeners for attendance check (for when it's accessed)
-      // These listeners will now be set up in showAttendanceScreen
-    })
-    .catch(error => {
-      console.error("Login error:", error);
-      alert("An error occurred during login. Please try again.");
-    });
-}
+// The old login function is now replaced by handleCredentialResponse -> appLogin
+// function login() { ... } 
 
 function goBackToDashboard() {
     showScreen("teacher-dashboard-screen");
@@ -244,7 +300,7 @@ function showAttendanceReportsScreen() {
 
     // Add an "All Villages" button if there are multiple villages
     if (villages.length > 1) {
-        filterButtonsHtml += `<button class="village-filter-button active" data-village="all">All Villages</button>`;
+        filterButtonsHtml += `<button class="village-filter-button" data-village="all">All Villages</button>`;
     }
 
     // Add buttons for each assigned village
@@ -317,206 +373,167 @@ async function generateAttendanceReport(villageName = "all") {
 
     // --- Data Processing for Charts and Stats ---
     const totalStudentsInScope = studentData.length;
-    const dailyStats = {}; // { 'YYYY-MM-DD': { present: N, total: N, percentage: X } }
-    const monthlyStats = {}; // { 'YYYY-MM': { totalSessions: N, presentSessions: N } }
-    const weeklyStats = {}; // { 'YYYY-WW': { totalSessions: N, presentSessions: N } }
+    
+    // Group attendance by date and session
+    const dailySessionStats = {}; // { 'YYYY-MM-DD': { 'Morning': { present: N, totalMarked: N }, 'Evening': { present: N, totalMarked: N } } }
+
+    // Get last 7 days for chart labels
+    const last7Days = Array.from({length: 7}).map((_, i) => {
+        const d = new Date();
+        d.setDate(d.getDate() - i);
+        return d.toISOString().split('T')[0]; //YYYY-MM-DD
+    }).reverse(); // To get chronological order
+
+    last7Days.forEach(date => {
+        dailySessionStats[date] = {
+            'Morning': { present: 0, totalMarked: 0 },
+            'Evening': { present: 0, totalMarked: 0 }
+        };
+    });
 
     attendanceData.forEach(record => {
-        const date = record.date; // YYYY-MM-DD
-        const [year, month, day] = date.split('-').map(Number);
-        const dateObj = new Date(year, month - 1, day); // Month is 0-indexed
+        const date = record.date;
+        const session = record.session; // 'Morning' or 'Evening'
 
-        // Daily Stats
-        if (!dailyStats[date]) {
-            dailyStats[date] = { present: 0, absent: 0, total_students_sheet: totalStudentsInScope }; // total_students_sheet is a baseline
-        }
-        if (record.present === 'Y') {
-            dailyStats[date].present++;
-        } else {
-            dailyStats[date].absent++;
-        }
-
-        // Monthly Stats (YYYY-MM)
-        const monthKey = `${year}-${String(month).padStart(2, '0')}`;
-        if (!monthlyStats[monthKey]) {
-            monthlyStats[monthKey] = { totalSessions: 0, presentSessions: 0 };
-        }
-        monthlyStats[monthKey].totalSessions++;
-        if (record.present === 'Y') {
-            monthlyStats[monthKey].presentSessions++;
-        }
-
-        // Weekly Stats (YYYY-WW)
-        // Simple week number calculation (might vary based on locale/standard)
-        const startOfYear = new Date(dateObj.getFullYear(), 0, 1);
-        const weekNumber = Math.ceil((((dateObj - startOfYear) / 86400000) + startOfYear.getDay() + 1) / 7); // Approx week number
-        const weekKey = `${year}-${String(weekNumber).padStart(2, '0')}`;
-        if (!weeklyStats[weekKey]) {
-            weeklyStats[weekKey] = { totalSessions: 0, presentSessions: 0 };
-        }
-        weeklyStats[weekKey].totalSessions++;
-        if (record.present === 'Y') {
-            weeklyStats[weekKey].presentSessions++;
+        if (dailySessionStats[date] && dailySessionStats[date][session]) {
+            dailySessionStats[date][session].totalMarked++;
+            if (record.present === 'Y') {
+                dailySessionStats[date][session].present++;
+            }
         }
     });
 
-    // Calculate daily percentages and labels for chart
-    const dailyChartLabels = Object.keys(dailyStats).sort();
-    const dailyChartData = dailyChartLabels.map(date => {
-        const stats = dailyStats[date];
-        // Calculate daily percentage based on students in sheet or recorded sessions
-        // Using recorded sessions (present + absent) as 'total' for the day for now,
-        // as knowing exact active students per day is complex without more data.
-        const totalRecorded = stats.present + stats.absent;
-        return totalRecorded > 0 ? (stats.present / totalRecorded) * 100 : 0;
+    // Prepare data for Chart.js
+    const chartLabels = last7Days.map(date => {
+        const d = new Date(date);
+        return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }); // e.g., "May 28"
     });
 
-    // Calculate monthly averages
-    const monthlyAvgLabels = Object.keys(monthlyStats).sort();
-    const monthlyAvgData = monthlyAvgLabels.map(monthKey => {
-        const stats = monthlyStats[monthKey];
-        return stats.totalSessions > 0 ? (stats.presentSessions / stats.totalSessions) * 100 : 0;
+    const morningPresentData = [];
+    const morningAbsentData = [];
+    const eveningPresentData = [];
+    const eveningAbsentData = [];
+
+    last7Days.forEach(date => {
+        const morningStats = dailySessionStats[date]?.Morning || { present: 0, totalMarked: 0 };
+        const eveningStats = dailySessionStats[date]?.Evening || { present: 0, totalMarked: 0 };
+
+        // For stacked bar, the 'absent' part is (total students in scope - present count)
+        // The 'totalMarked' is not necessarily total students in scope.
+        // Let's assume the gray bar should represent the total students in the selected village(s) (studentData.length)
+        // and the colored bar is the present count. The 'absent' part is then `totalStudentsInScope - present`.
+        
+        morningPresentData.push(morningStats.present);
+        morningAbsentData.push(totalStudentsInScope - morningStats.present); // Total students - present
+
+        eveningPresentData.push(eveningStats.present);
+        eveningAbsentData.push(totalStudentsInScope - eveningStats.present); // Total students - present
     });
 
-    // Calculate weekly averages
-    const weeklyAvgLabels = Object.keys(weeklyStats).sort();
-    const weeklyAvgData = weeklyAvgLabels.map(weekKey => {
-        const stats = weeklyStats[weekKey];
-        return stats.totalSessions > 0 ? (stats.presentSessions / stats.totalSessions) * 100 : 0;
-    });
 
     // --- Render Report HTML ---
     let reportHtml = `<h3>Report for ${villageName === 'all' ? 'All Assigned Villages' : villageName}</h3>`;
     reportHtml += `<p><strong>Total Unique Students in Scope:</strong> ${totalStudentsInScope}</p>`;
     reportHtml += `<p><strong>Total Attendance Records Processed:</strong> ${attendanceData.length}</p>`;
 
-    // Display Monthly Average
-    const currentMonthKey = `${new Date().getFullYear()}-${String(new Date().getMonth() + 1).padStart(2, '0')}`;
-    const currentMonthStats = monthlyStats[currentMonthKey];
-    if (currentMonthStats) {
-        const avg = currentMonthStats.totalSessions > 0 ? (currentMonthStats.presentSessions / currentMonthStats.totalSessions) * 100 : 0;
-        reportHtml += `<p><strong>Current Month Avg Attendance:</strong> ${avg.toFixed(2)}%</p>`;
-    }
-
-    // Display Last 7 Days Average
-    const last7DaysTotal = dailyStats[dailyChartLabels[dailyChartLabels.length -1]]?.total_students_sheet || 0; // Use last known total students
-    const last7DaysPresent = dailyChartLabels.slice(-7).reduce((sum, date) => sum + dailyStats[date].present, 0);
-    const last7DaysTotalSessions = dailyChartLabels.slice(-7).reduce((sum, date) => sum + dailyStats[date].present + dailyStats[date].absent, 0);
-
-    const avgLast7Days = last7DaysTotalSessions > 0 ? (last7DaysPresent / last7DaysTotalSessions) * 100 : 0;
-    reportHtml += `<p><strong>Last 7 Days Avg Attendance:</strong> ${avgLast7Days.toFixed(2)}%</p>`;
-
-
-    // Add canvas elements for charts
+    // Add canvas element for the combined daily chart
     reportHtml += `
         <div class="chart-container">
-            <h4>Daily Attendance Trend (Last 30 Days)</h4>
-            <canvas id="dailyAttendanceChart"></canvas>
-        </div>
-        <div class="chart-container">
-            <h4>Monthly Average Attendance</h4>
-            <canvas id="monthlyAvgChart"></canvas>
-        </div>
-        <div class="chart-container">
-            <h4>Weekly Average Attendance</h4>
-            <canvas id="weeklyAvgChart"></canvas>
+            <h4>Daily Attendance (Last 7 Days - Morning & Evening)</h4>
+            <canvas id="dailyAttendanceBarChart"></canvas>
         </div>
     `;
 
     reportsStatsContainer.innerHTML = reportHtml;
 
-    // --- Render Charts ---
+    // --- Render Chart ---
     // Destroy previous chart instances if they exist to prevent memory leaks/errors
-    if (window.dailyChartInstance) window.dailyChartInstance.destroy();
-    if (window.monthlyChartInstance) window.monthlyChartInstance.destroy();
-    if (window.weeklyChartInstance) window.weeklyChartInstance.destroy();
+    if (window.dailyBarChartInstance) window.dailyBarChartInstance.destroy();
 
-
-    // Daily Attendance Line Chart
-    const dailyCtx = document.getElementById('dailyAttendanceChart').getContext('2d');
-    window.dailyChartInstance = new Chart(dailyCtx, {
-        type: 'line',
+    const dailyCtx = document.getElementById('dailyAttendanceBarChart').getContext('2d');
+    window.dailyBarChartInstance = new Chart(dailyCtx, {
+        type: 'bar',
         data: {
-            labels: dailyChartLabels.slice(-30), // Last 30 days
-            datasets: [{
-                label: 'Attendance %',
-                data: dailyChartData.slice(-30),
-                borderColor: '#4f46e5',
-                backgroundColor: 'rgba(79, 70, 229, 0.2)',
-                fill: true,
-                tension: 0.1
-            }]
+            labels: chartLabels,
+            datasets: [
+                {
+                    label: 'Morning Present',
+                    data: morningPresentData,
+                    backgroundColor: 'rgba(79, 70, 229, 0.8)', // Blue for present
+                    stack: 'morning',
+                },
+                {
+                    label: 'Morning Absent',
+                    data: morningAbsentData,
+                    backgroundColor: 'rgba(107, 114, 128, 0.4)', // Gray for absent
+                    stack: 'morning',
+                },
+                {
+                    label: 'Evening Present',
+                    data: eveningPresentData,
+                    backgroundColor: 'rgba(34, 197, 94, 0.8)', // Green for present
+                    stack: 'evening',
+                },
+                {
+                    label: 'Evening Absent',
+                    data: eveningAbsentData,
+                    backgroundColor: 'rgba(107, 114, 128, 0.4)', // Gray for absent
+                    stack: 'evening',
+                }
+            ]
         },
         options: {
             responsive: true,
             maintainAspectRatio: false, // Allow charts to resize more freely
             scales: {
-                y: {
-                    beginAtZero: true,
-                    max: 100,
+                x: {
+                    stacked: true,
                     title: {
                         display: true,
-                        text: 'Attendance %'
+                        text: 'Date'
+                    }
+                },
+                y: {
+                    stacked: true,
+                    beginAtZero: true,
+                    max: 50, // Max Y-axis value
+                    ticks: {
+                        stepSize: 5, // Stops at 5, 10, 15...
+                        callback: function(value) {
+                            // Only show specific stops if they are multiples of 5 and within range
+                            if (value % 5 === 0 && value >= 0 && value <= 50) {
+                                return value;
+                            }
+                        }
+                    },
+                    title: {
+                        display: true,
+                        text: 'Number of Students'
                     }
                 }
-            }
-        }
-    });
-
-    // Monthly Average Bar Chart
-    const monthlyCtx = document.getElementById('monthlyAvgChart').getContext('2d');
-    window.monthlyChartInstance = new Chart(monthlyCtx, {
-        type: 'bar',
-        data: {
-            labels: monthlyAvgLabels,
-            datasets: [{
-                label: 'Avg Attendance %',
-                data: monthlyAvgData,
-                backgroundColor: '#22c55e', // Green
-                borderColor: '#16a34a',
-                borderWidth: 1
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            scales: {
-                y: {
-                    beginAtZero: true,
-                    max: 100,
-                    title: {
-                        display: true,
-                        text: 'Attendance %'
-                    }
-                }
-            }
-        }
-    });
-
-    // Weekly Average Bar Chart
-    const weeklyCtx = document.getElementById('weeklyAvgChart').getContext('2d');
-    window.weeklyChartInstance = new Chart(weeklyCtx, {
-        type: 'bar',
-        data: {
-            labels: weeklyAvgLabels,
-            datasets: [{
-                label: 'Avg Attendance %',
-                data: weeklyAvgData,
-                backgroundColor: '#ef4444', // Red
-                borderColor: '#b91c1c',
-                borderWidth: 1
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            scales: {
-                y: {
-                    beginAtZero: true,
-                    max: 100,
-                    title: {
-                        display: true,
-                        text: 'Attendance %'
+            },
+            plugins: {
+                tooltip: {
+                    mode: 'index',
+                    intersect: false,
+                    callbacks: {
+                        label: function(context) {
+                            let label = context.dataset.label || '';
+                            if (label) {
+                                label += ': ';
+                            }
+                            if (context.parsed.y !== null) {
+                                label += context.parsed.y;
+                            }
+                            // Add extra info for total students in scope
+                            if (context.dataset.stack === 'morning' && context.dataset.label.includes('Present')) {
+                                return [label, `Total Students: ${totalStudentsInScope}`];
+                            }
+                            if (context.dataset.stack === 'evening' && context.dataset.label.includes('Present')) {
+                                return [label, `Total Students: ${totalStudentsInScope}`];
+                            }
+                            return label;
+                        }
                     }
                 }
             }

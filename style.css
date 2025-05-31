@@ -102,15 +102,26 @@ button.disabled {
   box-shadow: none;
 }
 
-/* Logo styling */
+/* Original smaller logo styling (used on dashboard, attendance, etc.) */
 .logo {
-  width: 72px; /* Slightly larger logo */
-  height: 72px;
+  width: 64px; /* Slightly smaller than main-logo */
+  height: 64px;
   margin-bottom: 1.5rem; /* More space below the logo */
   display: block;
   margin-left: auto;
   margin-right: auto;
 }
+
+/* New styling for the main logo on the login screen */
+.main-logo {
+  width: 120px; /* Make it bigger */
+  height: 120px;
+  margin-bottom: 1.5rem;
+  display: block;
+  margin-left: auto;
+  margin-right: auto;
+}
+
 
 /* Styling for each student label (checkbox + name) in the #students div */
 #students label {
@@ -455,4 +466,25 @@ button.add-button:hover {
     margin-bottom: 8px;
     color: #374151;
     font-size: 1rem;
+}
+
+/* Chart container styling */
+.chart-container {
+    position: relative;
+    margin: 20px auto;
+    width: 90%; /* Adjust width for responsiveness */
+    max-width: 400px; /* Max width for larger screens */
+    height: 250px; /* Fixed height for consistency */
+    background: white;
+    padding: 15px;
+    border-radius: 0.75rem;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.08);
+}
+
+.chart-container h4 {
+    text-align: center;
+    margin-top: 0;
+    margin-bottom: 10px;
+    color: #1f2937;
+    font-size: 1.1rem;
 }
