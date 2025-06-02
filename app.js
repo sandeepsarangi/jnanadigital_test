@@ -311,7 +311,10 @@ function goBack() {
 
     if (successScreen && successScreen.style.display === 'flex') {
         const formHeading = document.getElementById("form-heading");
-        if (formHeading && (formHeading.innerText.includes("Add New Student") || formHeading.innerText.includes("Edit Student"))) {
+        // A bit of a heuristic: check if the form heading content suggests we came from student form
+        const studentFormRelatedContent = document.querySelector("#dynamic-student-form-container input[id='form-field-student_name']");
+
+        if (studentFormRelatedContent) { // More reliable check if form was visible
             showStudentListScreen();
         } else {
             showScreen("teacher-dashboard-screen");
@@ -469,7 +472,6 @@ async function generateAttendanceReport(villageName = "all") {
         }
     });
     
-    // Calculate average percentages
     let morningPercentages = [];
     let eveningPercentages = [];
 
@@ -485,8 +487,14 @@ async function generateAttendanceReport(villageName = "all") {
         }
     });
 
-    const avgMorningPercentage = morningPercentages.length > 0 ? (morningPercentages.reduce((a, b) => a + b, 0) / morningPercentages.length).toFixed(1) : "N/A";
-    const avgEveningPercentage = eveningPercentages.length > 0 ? (eveningPercentages.reduce((a, b) => a + b, 0) / eveningPercentages.length).toFixed(1) : "N/A";
+    const avgMorningPercentage = morningPercentages.length > 0 ? (morningPercentages.reduce((a, b) => a + b, 0) / morningPercentages.length) : null;
+    const avgEveningPercentage = eveningPercentages.length > 0 ? (eveningPercentages.reduce((a, b) => a + b, 0) / eveningPercentages.length) : null;
+
+    const displayAvgMorning = avgMorningPercentage !== null ? avgMorningPercentage.toFixed(1) : "N/A";
+    const displayAvgEvening = avgEveningPercentage !== null ? avgEveningPercentage.toFixed(1) : "N/A";
+
+    const morningAvgClass = (avgMorningPercentage !== null && avgMorningPercentage < 50) ? 'stat-value-low-attendance' : '';
+    const eveningAvgClass = (avgEveningPercentage !== null && avgEveningPercentage < 50) ? 'stat-value-low-attendance' : '';
 
 
     const chartLabels = last7Days.map(date => {
@@ -513,21 +521,20 @@ async function generateAttendanceReport(villageName = "all") {
         eveningAbsentData.push(eveningStudentsInvolvedCount > 0 ? eveningStudentsInvolvedCount - eveningStats.present : 0);
     });
 
-    // Construct HTML for stats and chart
     let reportHtml = `<h3>Report for ${villageName === 'all' ? 'All Assigned Villages' : villageName}</h3>`;
     
     reportHtml += `<div class="report-summary-stats">`;
     reportHtml += `  <div class="stat-item">`;
-    reportHtml += `    <span class="stat-label">Total Students</span>`;
+    reportHtml += `    <span class="stat-label">Students</span>`; // Changed Label
     reportHtml += `    <span class="stat-value">${totalStudentsInScope}</span>`;
     reportHtml += `  </div>`;
     reportHtml += `  <div class="stat-item">`;
-    reportHtml += `    <span class="stat-label">Avg. Morning Attendance (7d)</span>`;
-    reportHtml += `    <span class="stat-value">${avgMorningPercentage}${avgMorningPercentage !== "N/A" ? "%" : ""}</span>`;
+    reportHtml += `    <span class="stat-label">Morning Avg. (7d)</span>`; // Changed Label
+    reportHtml += `    <span class="stat-value ${morningAvgClass}">${displayAvgMorning}${displayAvgMorning !== "N/A" ? "%" : ""}</span>`; // Added class
     reportHtml += `  </div>`;
     reportHtml += `  <div class="stat-item">`;
-    reportHtml += `    <span class="stat-label">Avg. Evening Attendance (7d)</span>`;
-    reportHtml += `    <span class="stat-value">${avgEveningPercentage}${avgEveningPercentage !== "N/A" ? "%" : ""}</span>`;
+    reportHtml += `    <span class="stat-label">Eve Avg. (7d)</span>`; // Changed Label
+    reportHtml += `    <span class="stat-value ${eveningAvgClass}">${displayAvgEvening}${displayAvgEvening !== "N/A" ? "%" : ""}</span>`; // Added class
     reportHtml += `  </div>`;
     reportHtml += `</div>`;
 

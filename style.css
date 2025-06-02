@@ -543,6 +543,11 @@ button.add-button:hover {
     font-weight: 700;
 }
 
+/* NEW class for low attendance percentage values */
+.stat-value-low-attendance {
+    color: #ef4444 !important; /* Red color, matches .red-ring */
+}
+
 
 /* Chart container styling */
 .chart-container {
