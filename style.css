@@ -94,7 +94,7 @@ button:active {
 }
 
 /* Styling for disabled buttons */
-button:disabled, button.disabled {
+button.disabled {
   background: #cbd5e1 !important; /* Lighter, muted background for disabled */
   color: #6b7280 !important; /* Muted text color */
   cursor: not-allowed;
@@ -114,18 +114,12 @@ button:disabled, button.disabled {
 
 /* New styling for the main logo on the login screen */
 .main-logo {
-  width: 180px; 
-  height: 180px; 
+  width: 120px; /* Make it bigger */
+  height: 120px;
   margin-bottom: 1.5rem;
   display: block;
   margin-left: auto;
   margin-right: auto;
-}
-
-/* Styling for the Google Sign-In button container to center it */
-.g_id_signin {
-  margin: 15px auto 0 auto; /* Top margin, then auto left/right for centering */
-  display: block; /* Ensure it behaves as a block element for margin:auto to work */
 }
 
 
@@ -150,43 +144,43 @@ button:disabled, button.disabled {
   height: 20px; /* Standard checkbox size */
   margin: 0; /* Remove any default margins around the checkbox */
   padding: 0; /* Remove any default padding inside the checkbox */
-  box-sizing: border-box; 
+  box-sizing: border-box; /* Ensure padding and border are included in the element's total width and height */
   accent-color: #4f46e5; /* Custom color for the checkbox when checked */
   border-radius: 4px; /* Slightly rounded checkbox */
 }
 
 /* Styling for the student name span */
 #students span {
-  flex-grow: 1; 
+  flex-grow: 1; /* Allow the student name to take up all available horizontal space */
   text-align: left;
-  white-space: normal; 
-  word-break: break-word; 
-  display: block; 
-  line-height: 1.4; 
-  color: #374151; 
+  white-space: normal; /* Allow text to wrap to the next line */
+  word-break: break-word; /* Break long words if they don't fit */
+  display: block; /* Use block for better wrapping behavior */
+  line-height: 1.4; /* Improve line spacing for readability */
+  color: #374151; /* Darker text for better contrast */
 }
 
 /* Styling for labels and headings that should be left-aligned */
 .left-text {
   text-align: left;
   display: block;
-  margin-top: 1.25rem; 
-  margin-bottom: 0.5rem; 
-  font-weight: 600; 
-  color: #1f2937; 
+  margin-top: 1.25rem; /* More space above labels */
+  margin-bottom: 0.5rem; /* Space below labels */
+  font-weight: 600; /* Bolder text */
+  color: #1f2937; /* Darker text for labels */
 }
 
 /* Heading styling */
 h2 {
-  margin-bottom: 1.5rem; 
-  color: #1f2937; 
-  font-size: 1.8rem; 
-  font-weight: 700; 
+  margin-bottom: 1.5rem; /* More space below headings */
+  color: #1f2937; /* Darker text for headings */
+  font-size: 1.8rem; /* Larger heading size */
+  font-weight: 700; /* Extra bold for headings */
 }
 
 /* Centered heading style */
 h2.centered-heading {
-    text-align: center; 
+    text-align: center; /* Center headings within the card */
 }
 
 /* Success screen specific text */
@@ -200,10 +194,10 @@ h2.centered-heading {
 .login-screen, .app-screen, .success-screen {
   display: none; /* Hidden by default */
   width: 100%;
-  min-height: 100vh; 
+  min-height: 100vh; /* Take full viewport height for these containers */
   justify-content: center;
   align-items: center;
-  flex-direction: column; 
+  flex-direction: column; /* Stack content vertically */
 }
 
 /* Login screen is visible by default */
@@ -213,33 +207,33 @@ h2.centered-heading {
 
 /* Dashboard specific styles */
 .dashboard-card {
-    padding: 3rem 1.5rem; 
+    padding: 3rem 1.5rem; /* More vertical padding for dashboard */
 }
 
 .dashboard-options {
     display: flex;
     flex-direction: column;
-    gap: 20px; 
+    gap: 20px; /* Space between dashboard buttons */
     margin-top: 2rem;
 }
 
 .dashboard-option-btn {
     display: flex;
     align-items: center;
-    justify-content: center; 
-    gap: 15px; 
-    background: #f0f4f8; 
-    color: #4f46e5; 
-    padding: 20px; 
-    border-radius: 1rem; 
-    font-size: 1.2rem; 
+    justify-content: center; /* Center content within the button */
+    gap: 15px; /* Space between icon and text */
+    background: #f0f4f8; /* Lighter background for dashboard options */
+    color: #4f46e5; /* Primary color for text/icon */
+    padding: 20px; /* Large padding for touch target */
+    border-radius: 1rem; /* More rounded corners */
+    font-size: 1.2rem; /* Larger font for options */
     font-weight: 600;
-    box-shadow: 0 4px 8px rgba(0,0,0,0.08); 
+    box-shadow: 0 4px 8px rgba(0,0,0,0.08); /* Subtle shadow */
     transition: all 0.2s ease-in-out;
 }
 
 .dashboard-option-btn .icon {
-    font-size: 2.5rem; 
+    font-size: 2.5rem; /* Larger icons */
     color: #4f46e5;
 }
 
@@ -259,13 +253,13 @@ h2.centered-heading {
 /* Student List specific styles */
 #student-list {
     margin-top: 20px;
-    margin-bottom: 20px; 
-    max-height: 40vh; 
+    margin-bottom: 20px; /* Space before add student button */
+    max-height: 40vh; /* Make student list scrollable if many students */
     overflow-y: auto;
     border: 1px solid #e5e7eb;
     border-radius: 0.75rem;
     box-shadow: inset 0 1px 3px rgba(0,0,0,0.05);
-    background-color: #fcfcfc; 
+    background-color: #fcfcfc; /* Slightly off-white background for the list */
 }
 
 .student-card {
@@ -276,21 +270,21 @@ h2.centered-heading {
     text-align: left;
     gap: 15px;
     transition: background-color 0.1s ease-in-out;
-    position: relative; 
+    position: relative; /* For positioning the edit button */
 }
 
 .student-card:last-child {
-    border-bottom: none; 
+    border-bottom: none; /* No border for the last item */
 }
 
 .student-card:hover {
-    background-color: #f7f7f7; 
+    background-color: #f7f7f7; /* Subtle hover effect for list items */
 }
 
 .student-icon {
-    font-size: 2.2rem; 
+    font-size: 2.2rem; /* Larger icon */
     flex-shrink: 0;
-    color: #6b7280; 
+    color: #6b7280; /* Muted color */
 }
 
 .student-info {
@@ -298,7 +292,7 @@ h2.centered-heading {
 }
 
 .student-name {
-    font-size: 1.2rem; 
+    font-size: 1.2rem; /* Slightly larger font for name */
     font-weight: 600;
     color: #1f2937;
     margin-bottom: 2px;
@@ -333,71 +327,72 @@ button.add-button:hover {
     display: flex;
     align-items: center;
     justify-content: center;
-    position: relative; 
+    position: relative; /* For positioning text inside */
     flex-shrink: 0;
-    margin-left: auto; 
+    margin-left: auto; /* Push to the right */
 }
 
 .percentage-ring-container svg {
-    transform: rotate(-90deg); 
-    overflow: visible; 
+    transform: rotate(-90deg); /* Start the circle from the top */
+    overflow: visible; /* Ensure stroke-linecap is visible */
 }
 
 .percentage-ring-bg {
     fill: none;
-    stroke: #e0e0e0; 
+    stroke: #e0e0e0; /* Light grey background for the ring */
     stroke-width: 4;
 }
 
 .percentage-ring-progress {
     fill: none;
     stroke-width: 4;
-    stroke-linecap: round; 
-    transition: stroke-dashoffset 0.5s ease-in-out; 
+    stroke-linecap: round; /* Rounded ends for the progress bar */
+    transition: stroke-dashoffset 0.5s ease-in-out; /* Smooth animation for percentage change */
 }
 
 .blue-ring {
-    stroke: #4f46e5; 
+    stroke: #4f46e5; /* Blue for good attendance */
 }
 
 .red-ring {
-    stroke: #ef4444; 
+    stroke: #ef4444; /* Red for low attendance */
 }
 
 .percentage-text {
-    fill: #1f2937; 
-    font-size: 0.8rem; 
+    fill: #1f2937; /* Default text color, overridden by specific classes */
+    font-size: 0.8rem; /* Size of the percentage number */
     font-weight: 700;
-    transform: rotate(90deg); 
-    transform-origin: center; 
+    transform: rotate(90deg); /* Rotate text back to normal */
+    transform-origin: center; /* Ensure rotation is around its center */
 }
 
+/* New styles for percentage text colors */
 .blue-ring-text {
-    fill: #4f46e5; 
+    fill: #4f46e5; /* Blue for good attendance percentage text */
 }
 
 .red-ring-text {
-    fill: #ef4444; 
+    fill: #ef4444; /* Red for low attendance percentage text */
 }
 
 /* Edit button on student card */
 .edit-student-btn {
     background: none;
     border: none;
-    color: #6b7280; 
+    color: #6b7280; /* Muted color */
     font-size: 1.5rem;
     cursor: pointer;
     padding: 5px;
-    margin-left: 10px; 
+    margin-left: 10px; /* Space from percentage ring */
     transition: color 0.2s ease-in-out;
-    width: auto; 
-    margin-top: 0; 
+    width: auto; /* Override full width */
+    margin-top: 0; /* Override default margin-top */
 }
 
 .edit-student-btn:hover {
-    color: #4f46e5; 
-    background: none; 
-    transform: translateY(-1px); 
+    color: #4f46e5; /* Primary color on hover */
+    background: none; /* Ensure no background change on hover */
+    transform: translateY(-1px); /* Slight lift */
 }
 
 /* Dynamic form container and buttons */
@@ -409,29 +404,28 @@ button.add-button:hover {
     display: flex;
     flex-direction: column;
     width: 100%;
-    margin-top: 20px; 
+    margin-top: 20px; /* Space above buttons */
 }
 
 /* Reports screen specific styles */
 #reports-village-filters {
     display: flex;
-    flex-wrap: wrap; 
-    gap: 12px; /* Space between filter elements */
-    margin-bottom: 25px; /* Increased margin */
-    justify-content: center; 
-    align-items: center; /* Vertically align button and dropdown */
+    flex-wrap: wrap; /* Allow buttons to wrap on smaller screens */
+    gap: 10px; /* Space between filter buttons */
+    margin-bottom: 20px;
+    justify-content: center; /* Center buttons */
 }
 
-.village-filter-button { /* Base style for filter buttons */
-    background: #e0e7ff; 
-    color: #4f46e5; 
-    border: 1px solid #6366f1; 
-    padding: 8px 15px; /* Default padding */
+.village-filter-button {
+    background: #e0e7ff; /* Light blue background */
+    color: #4f46e5; /* Dark blue text */
+    border: 1px solid #6366f1; /* Blue border */
+    padding: 8px 15px;
     border-radius: 0.5rem;
     font-weight: 600;
     cursor: pointer;
     transition: all 0.2s ease-in-out;
-    flex-shrink: 0; 
+    flex-shrink: 0; /* Prevent shrinking */
 }
 
 .village-filter-button:hover {
@@ -440,51 +434,24 @@ button.add-button:hover {
 }
 
 .village-filter-button.active {
-    background: #4f46e5; 
+    background: #4f46e5; /* Active button is dark blue */
     color: white;
     box-shadow: 0 2px 5px rgba(0,0,0,0.1);
     transform: translateY(-1px);
 }
 
-/* Specific overrides for the "All Villages" button in the new layout */
-#report-all-villages-btn {
-    /* .village-filter-button class provides base style */
-    width: auto !important; /* Override generic button width: 100% */
-    margin-top: 0 !important; /* Override generic button margin-top */
-    padding: 10px 18px; /* Slightly more padding for a primary feel */
-}
-
-/* Styling for the new village select dropdown */
-#report-village-select {
-    width: auto !important; /* Override generic select width: 100% */
-    min-width: 180px; /* Ensure it has a decent width */
-    margin-top: 0 !important; /* Override generic select margin-top */
-    padding: 10px 12px; /* Aim for similar height to the button */
-    /* Inherits border-radius, border, font-size, font-family from general select style */
-    background-color: white; /* Explicit background */
-    color: #374151; /* Text color */
-    line-height: normal; /* Helps with select arrow visibility on some browsers */
-    height: auto; /* Let padding define height, or set fixed if needed */
-}
-#report-village-select:disabled {
-    background-color: #e9ecef; /* Muted background when disabled */
-    color: #6c757d; /* Muted text color */
-    cursor: not-allowed;
-}
-
-
 #reports-stats-container {
-    text-align: left; 
+    text-align: left; /* Align report stats to the left */
     width: 100%;
-    padding: 15px; /* Increased padding */
+    padding: 10px;
     border: 1px solid #e5e7eb;
     border-radius: 0.75rem;
     background-color: #fcfcfc;
-    min-height: 150px; 
+    min-height: 150px; /* Give some minimum height */
     display: flex;
     flex-direction: column;
-    justify-content: flex-start; /* Align content to the top */
-    align-items: flex-start; /* Align content to the left */
+    justify-content: flex-start;
+    align-items: flex-start;
 }
 
 #reports-stats-container h3 {
@@ -501,13 +468,13 @@ button.add-button:hover {
     font-size: 1rem;
 }
 
-/* Chart container styling (optional, if you add charts) */
+/* Chart container styling */
 .chart-container {
     position: relative;
     margin: 20px auto;
-    width: 90%; 
-    max-width: 400px; 
-    height: 250px; 
+    width: 90%; /* Adjust width for responsiveness */
+    max-width: 400px; /* Max width for larger screens */
+    height: 250px; /* Fixed height for consistency */
     background: white;
     padding: 15px;
     border-radius: 0.75rem;
