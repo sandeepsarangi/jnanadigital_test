@@ -482,15 +482,14 @@ button.add-button:hover {
 #reports-stats-container {
     text-align: left; 
     width: 100%;
-    /* padding: 15px; */ /* Padding will be on the new summary container */
-    border: none; /* Remove border from main container if summary has its own */
-    border-radius: 0; /* Remove radius from main container */
-    background-color: transparent; /* Make main container transparent */
-    min-height: auto; /* Adjust as needed */
+    border: none; 
+    border-radius: 0; 
+    background-color: transparent; 
+    min-height: auto; 
     display: flex;
     flex-direction: column;
     justify-content: flex-start; 
-    align-items: center; /* Center children like title and chart */
+    align-items: center; 
 }
 
 #reports-stats-container h3 { /* Report Title */
@@ -499,21 +498,21 @@ button.add-button:hover {
     margin-top: 0;
     margin-bottom: 15px;
     color: #1f2937;
-    font-size: 1.5rem; /* Slightly smaller title */
+    font-size: 1.5rem; 
 }
 
-/* NEW styles for the summary stats box */
+/* UPDATED styles for the summary stats box */
 .report-summary-stats {
     display: flex;
-    justify-content: space-around; /* Distribute items evenly */
-    flex-wrap: wrap; /* Allow wrapping on smaller screens */
-    gap: 15px; /* Space between stat items */
+    justify-content: space-between; /* Changed from space-around for tighter packing */
+    flex-wrap: wrap; /* Allow wrapping if absolutely necessary, but aim for one row */
+    gap: 10px; /* Reduced gap */
     width: 100%;
-    background-color: #f8fafc; /* Light background for the stats box */
-    padding: 20px;
-    border-radius: 1rem; /* Rounded corners for the box */
-    box-shadow: 0 4px 12px rgba(0,0,0,0.08); /* Subtle shadow */
-    margin-bottom: 25px; /* Space below the stats box before the chart */
+    background-color: #f8fafc; 
+    padding: 15px; /* Reduced padding */
+    border-radius: 1rem; 
+    box-shadow: 0 4px 12px rgba(0,0,0,0.08); 
+    margin-bottom: 25px; 
 }
 
 .stat-item {
@@ -521,25 +520,26 @@ button.add-button:hover {
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    padding: 10px 15px;
-    background-color: #ffffff; /* White background for each item */
-    border-radius: 0.75rem; /* Rounded corners for items */
+    padding: 8px 10px; /* Reduced padding */
+    background-color: #dad7cd; /* UPDATED background color */
+    border-radius: 0.75rem; 
     box-shadow: 0 2px 6px rgba(0,0,0,0.06);
     text-align: center;
-    min-width: 100px; /* Minimum width for each stat item */
-    flex-grow: 1; /* Allow items to grow */
+    min-width: 90px; /* Reduced min-width */
+    flex-basis: 0; /* Allow flex-grow to distribute space from a zero basis */
+    flex-grow: 1; 
 }
 
 .stat-label {
-    font-size: 0.85rem;
-    color: #4b5563; /* Muted color for label */
-    margin-bottom: 5px;
+    font-size: 0.8rem; /* Slightly smaller label */
+    color: #4b5563; 
+    margin-bottom: 4px; /* Reduced margin */
     font-weight: 500;
 }
 
 .stat-value {
-    font-size: 1.75rem; /* Larger font for the value */
-    color: #1f2937; /* Darker color for value */
+    font-size: 1.6rem; /* Slightly smaller value */
+    color: #1f2937; 
     font-weight: 700;
 }
 
@@ -552,21 +552,21 @@ button.add-button:hover {
 /* Chart container styling */
 .chart-container {
     position: relative;
-    margin: 0 auto 20px auto; /* Centered, no top margin as summary-stats has bottom margin */
-    width: 100%; /* Take full width of its parent within the card */
-    max-width: 420px; /* Slightly increased max-width */
-    height: 280px; /* Slightly increased height */
+    margin: 0 auto 20px auto; 
+    width: 100%; 
+    max-width: 420px; 
+    height: 280px; 
     background: white;
-    padding: 20px; /* Increased padding */
-    border-radius: 1rem; /* More rounded corners */
-    box-shadow: 0 6px 12px rgba(0,0,0,0.1); /* Slightly deeper shadow */
+    padding: 20px; 
+    border-radius: 1rem; 
+    box-shadow: 0 6px 12px rgba(0,0,0,0.1); 
 }
 
 .chart-container h4 { /* Chart Title */
     text-align: center;
     margin-top: 0;
-    margin-bottom: 15px; /* Increased space below chart title */
+    margin-bottom: 15px; 
     color: #1f2937;
-    font-size: 1.2rem; /* Larger chart title */
+    font-size: 1.2rem; 
     font-weight: 600;
 }
