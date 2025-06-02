@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>📋 Attendance App</title>
+  <link rel="stylesheet" href="style.css">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+  <script src="https://accounts.google.com/gsi/client" async defer></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+  <div class="background-gradient">
+    <div class="login-screen" id="login-screen">
+      <div class="card">
+        <img src="JnanaLogo-min.png" class="main-logo" onerror="this.onerror=null; this.src='https://placehold.co/180x180/abcdef/333333?text=Logo';" alt="Jnana Logo - Lighting a bulb" />
+        <h2>🔐 Jnana Login</h2>
+        
+        <div id="g_id_onload"
+             data-client_id="706534157986-21k4tsoda92pkrkdai0f9nlfe6oo0k16.apps.googleusercontent.com"
+             data-context="signin"
+             data-ux_mode="popup"
+             data-callback="handleCredentialResponse"
+             data-auto_prompt="false">
+        </div>
+        <div class="g_id_signin"
+             data-type="standard"
+             data-shape="rectangular"
+             data-theme="outline"
+             data-text="signin_with"
+             data-size="large"
+             data-width="300"
+             data-locale="en-US">
+        </div>
+        
+        <button id="signout-button" onclick="signOut()" style="display:none; margin-top: 20px;">Sign Out</button>
+
+      </div>
+    </div>
+
+    <div class="app-screen" id="teacher-dashboard-screen" style="display:none;">
+      <div class="card dashboard-card">
+        <img src="https://placehold.co/64x64/abcdef/333333?text=Icon" class="logo" onerror="this.onerror=null; this.src='https://placehold.co/64x64/abcdef/333333?text=Icon';" alt="Clipboard Logo" />
+        <h2 id="dashboard-welcome"></h2>
+        <div class="dashboard-options">
+            <button class="dashboard-option-btn" onclick="showAttendanceScreen()">
+                <span class="icon">📋</span>
+                <span class="text">Mark Attendance</span>
+            </button>
+            <button class="dashboard-option-btn" onclick="showStudentListScreen()">
+                <span class="icon">🧑‍🎓</span>
+                <span class="text">Manage Students</span>
+            </button>
+            <button class="dashboard-option-btn" id="dashboard-reports-btn" style="display:none;" onclick="showAttendanceReportsScreen()">
+                <span class="icon">📈</span>
+                <span class="text">Attendance Reports</span>
+            </button>
+        </div>
+      </div>
+    </div>
+
+    <div class="app-screen" id="attendance-screen" style="display:none;">
+      <div class="card">
+        <img src="https://placehold.co/64x64/abcdef/333333?text=Icon" class="logo" onerror="this.onerror=null; this.src='https://placehold.co/64x64/abcdef/333333?text=Icon';" alt="Clipboard Logo" />
+        <h2 class="centered-heading">📋 Mark Attendance</h2>
+        <label for="attendance-village-select" class="left-text">🏡 Select Village:</label>
+        <select id="attendance-village-select"></select>
+        <label for="date" class="left-text">📅 Date:</label>
+        <input type="date" id="date" />
+        <label for="session" class="left-text">🌇 Session:</label>
+        <select id="session">
+          <option>Morning</option>
+          <option>Evening</option>
+        </select>
+        <div id="students"></div>
+        <button id="submit-btn" onclick="submitAttendance()">📤 Submit Attendance</button>
+        <button class="secondary-button" onclick="goBackToDashboard()">↩️ Back to Dashboard</button>
+      </div>
+    </div>
+
+    <div class="app-screen" id="student-list-screen" style="display:none;">
+      <div class="card">
+        <img src="https://placehold.co/64x64/abcdef/333333?text=Icon" class="logo" onerror="this.onerror=null; this.src='https://placehold.co/64x64/abcdef/333333?text=Icon';" alt="Clipboard Logo" />
+        <h2 class="centered-heading">🧑‍🎓 Student List</h2>
+        <label for="student-list-village-select" class="left-text">🏡 Select Village:</label>
+        <select id="student-list-village-select"></select>
+        <button id="add-student-button" class="add-button" onclick="showAddStudentForm()">➕ Add New Student</button>
+        <div id="student-list">
+          <p class="loading-text">Loading students...</p>
+        </div>
+        <button class="secondary-button" onclick="goBackToDashboard()">↩️ Back to Dashboard</button>
+      </div>
+    </div>
+
+    <div class="app-screen" id="add-edit-student-form-screen" style="display:none;">
+      <div class="card">
+        <img src="https://placehold.co/64x64/abcdef/333333?text=Icon" class="logo" onerror="this.onerror=null; this.src='https://placehold.co/64x64/abcdef/333333?text=Icon';" alt="Clipboard Logo" />
+        <h2 id="form-heading" class="centered-heading"></h2>
+        <div id="dynamic-student-form-container">
+          <p class="loading-text">Building form...</p>
+        </div>
+        <div id="form-buttons"></div>
+      </div>
+    </div>
+
+    <div class="app-screen" id="attendance-reports-screen" style="display:none;">
+      <div class="card">
+        <img src="https://placehold.co/64x64/abcdef/333333?text=Icon" class="logo" onerror="this.onerror=null; this.src='https://placehold.co/64x64/abcdef/333333?text=Icon';" alt="Clipboard Logo" />
+        <h2 class="centered-heading">📈 Attendance Reports</h2>
+        <div id="reports-content">
+            <div id="reports-village-filters">
+                <button id="report-all-villages-btn" class="village-filter-button">All Villages</button>
+                <select id="report-village-select"></select>
+            </div>
+            <div id="reports-stats-container">
+                <p class="loading-text">Select a filter to view stats.</p>
+            </div>
+            <!-- 
+            <div class="chart-container" id="attendance-chart-container" style="display: none;">
+                <h4>Attendance Trend</h4>
+                <canvas id="attendanceReportChart"></canvas>
+            </div>
+            -->
+        </div>
+        <button class="secondary-button" onclick="goBackToDashboard()">↩️ Back to Dashboard</button>
+      </div>
+    </div>
+
+    <div class="success-screen" id="success-screen" style="display:none;">
+      <div class="card">
+        <img src="https://placehold.co/64x64/abcdef/333333?text=Icon" class="logo" onerror="this.onerror=null; this.src='https://placehold.co/64x64/abcdef/333333?text=Icon';" alt="Clipboard Logo" />
+        <h2>✅ Success!</h2>
+        <p id="success-message">Operation completed successfully.</p>
+        <button onclick="goBack()">Back</button>
+      </div>
+    </div>
+  </div>
+  <script src="app.js"></script>
+</body>
+</html>
