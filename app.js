@@ -309,23 +309,19 @@ function goBack() {
     const addEditScreen = document.getElementById("add-edit-student-form-screen");
     const successScreen = document.getElementById("success-screen");
 
-    // If on success screen, determine context
     if (successScreen && successScreen.style.display === 'flex') {
-        // Check if the previous screen was add/edit student by looking at a typical element
-        // This is a bit of a heuristic. A more robust way would be to store previous screen state.
         const formHeading = document.getElementById("form-heading");
         if (formHeading && (formHeading.innerText.includes("Add New Student") || formHeading.innerText.includes("Edit Student"))) {
             showStudentListScreen();
         } else {
             showScreen("teacher-dashboard-screen");
         }
-    } else if (addEditScreen && addEditScreen.style.display === 'flex') { // If on add/edit form directly
+    } else if (addEditScreen && addEditScreen.style.display === 'flex') { 
         showStudentListScreen(); 
-    } else { // Default to dashboard
+    } else { 
         showScreen("teacher-dashboard-screen"); 
     }
 
-    // If returning to attendance screen, re-check status
     if (document.getElementById("attendance-screen").style.display === 'flex') {
         checkExistingAttendance();
     }
@@ -342,27 +338,25 @@ function showAttendanceReportsScreen() {
         return;
     }
     
-    reportsVillageFilters.innerHTML = ''; // Clear previous filters
+    reportsVillageFilters.innerHTML = ''; 
     reportsStatsContainer.innerHTML = '<p class="loading-text">Select a filter to view reports.</p>';
 
     if (!user || !user.assignedVillages) {
         reportsVillageFilters.innerHTML = '<p class="loading-text">User data or assigned villages not available.</p>';
-        reportsStatsContainer.innerHTML = ''; // Clear stats container
+        reportsStatsContainer.innerHTML = ''; 
         return;
     }
 
     const villages = user.assignedVillages;
 
-    // Create "All Villages" button
     const allBtn = document.createElement('button');
     allBtn.id = 'report-all-villages-btn';
-    allBtn.classList.add('village-filter-button'); // Apply base styling
+    allBtn.classList.add('village-filter-button'); 
     allBtn.textContent = 'All Villages';
     reportsVillageFilters.appendChild(allBtn);
 
-    // Create village select dropdown
     const villageSelect = document.createElement('select');
-    villageSelect.id = 'report-village-select'; // Apply specific styling via CSS
+    villageSelect.id = 'report-village-select'; 
     reportsVillageFilters.appendChild(villageSelect);
 
     if (villages.length === 0) {
@@ -376,9 +370,8 @@ function showAttendanceReportsScreen() {
         return;
     }
 
-    // Populate dropdown
     const defaultOption = document.createElement('option');
-    defaultOption.value = ""; // Important for logic to detect "Select Specific Village"
+    defaultOption.value = ""; 
     defaultOption.textContent = "Select Specific Village";
     villageSelect.appendChild(defaultOption);
 
@@ -392,42 +385,38 @@ function showAttendanceReportsScreen() {
     allBtn.disabled = false;
     villageSelect.disabled = false;
 
-    // Add event listeners
     allBtn.addEventListener('click', () => {
-        villageSelect.value = ""; // Reset dropdown to "Select Specific Village"
+        villageSelect.value = ""; 
         allBtn.classList.add('active');
         generateAttendanceReport("all");
     });
 
     villageSelect.addEventListener('change', () => {
         const selectedVillage = villageSelect.value;
-        if (selectedVillage) { // A specific village is selected
+        if (selectedVillage) { 
             allBtn.classList.remove('active');
             generateAttendanceReport(selectedVillage);
-        } else { // "Select Specific Village" (empty value) is chosen
-            if (!allBtn.classList.contains('active')) { // Prevent re-triggering if already active
-                allBtn.click(); // Simulate click on "All Villages"
+        } else { 
+            if (!allBtn.classList.contains('active')) { 
+                allBtn.click(); 
             }
         }
     });
 
-    // Initial load: "All Villages" report
-    allBtn.click(); // This will set it active and trigger generateAttendanceReport("all")
+    allBtn.click(); 
 }
 
 
-// --- ORIGINAL generateAttendanceReport and other functions follow ---
 async function generateAttendanceReport(villageName = "all") {
     const reportsStatsContainer = document.getElementById("reports-stats-container");
     reportsStatsContainer.innerHTML = `<p class="loading-text">Generating report for ${villageName === 'all' ? 'all villages' : villageName}...</p>`;
 
     let attendanceData = [];
-    // Ensure user and user.assignedVillages are available
     const villagesToQuery = villageName === 'all' ? (user && user.assignedVillages ? user.assignedVillages : []) : [villageName];
     
     try {
         for (const village of villagesToQuery) {
-            if (village) { // Ensure village is not empty/null/undefined
+            if (village) { 
                 const data = await makeNetlifyFunctionRequest('GET', null, { sheet: 'Attendance', village: village });
                 attendanceData = attendanceData.concat(data);
             }
@@ -441,21 +430,18 @@ async function generateAttendanceReport(villageName = "all") {
     let studentData = [];
     try {
         for (const village of villagesToQuery) {
-             if (village) { // Ensure village is not empty/null/undefined
+             if (village) { 
                 const data = await makeNetlifyFunctionRequest('GET', null, { sheet: 'Students', village: village });
                 studentData = studentData.concat(data);
             }
         }
     } catch (error) {
         console.error("Error fetching student data for report:", error);
-        // Continue with report generation if student data fails, but stats might be affected
     }
-
 
     const totalStudentsInScope = studentData.length;
     
     const dailySessionStats = {}; 
-
     const last7Days = Array.from({length: 7}).map((_, i) => {
         const d = new Date();
         d.setDate(d.getDate() - i);
@@ -482,6 +468,26 @@ async function generateAttendanceReport(villageName = "all") {
             }
         }
     });
+    
+    // Calculate average percentages
+    let morningPercentages = [];
+    let eveningPercentages = [];
+
+    last7Days.forEach(date => {
+        const morningStat = dailySessionStats[date]['Morning'];
+        if (morningStat.studentsInvolved.size > 0) {
+            morningPercentages.push((morningStat.present / morningStat.studentsInvolved.size) * 100);
+        }
+
+        const eveningStat = dailySessionStats[date]['Evening'];
+        if (eveningStat.studentsInvolved.size > 0) {
+            eveningPercentages.push((eveningStat.present / eveningStat.studentsInvolved.size) * 100);
+        }
+    });
+
+    const avgMorningPercentage = morningPercentages.length > 0 ? (morningPercentages.reduce((a, b) => a + b, 0) / morningPercentages.length).toFixed(1) : "N/A";
+    const avgEveningPercentage = eveningPercentages.length > 0 ? (eveningPercentages.reduce((a, b) => a + b, 0) / eveningPercentages.length).toFixed(1) : "N/A";
+
 
     const chartLabels = last7Days.map(date => {
         const d = new Date(date);
@@ -507,9 +513,23 @@ async function generateAttendanceReport(villageName = "all") {
         eveningAbsentData.push(eveningStudentsInvolvedCount > 0 ? eveningStudentsInvolvedCount - eveningStats.present : 0);
     });
 
+    // Construct HTML for stats and chart
     let reportHtml = `<h3>Report for ${villageName === 'all' ? 'All Assigned Villages' : villageName}</h3>`;
-    reportHtml += `<p><strong>Total Unique Students in Scope (across selected villages):</strong> ${totalStudentsInScope}</p>`;
-    reportHtml += `<p><strong>Total Attendance Records Processed:</strong> ${attendanceData.length}</p>`;
+    
+    reportHtml += `<div class="report-summary-stats">`;
+    reportHtml += `  <div class="stat-item">`;
+    reportHtml += `    <span class="stat-label">Total Students</span>`;
+    reportHtml += `    <span class="stat-value">${totalStudentsInScope}</span>`;
+    reportHtml += `  </div>`;
+    reportHtml += `  <div class="stat-item">`;
+    reportHtml += `    <span class="stat-label">Avg. Morning Attendance (7d)</span>`;
+    reportHtml += `    <span class="stat-value">${avgMorningPercentage}${avgMorningPercentage !== "N/A" ? "%" : ""}</span>`;
+    reportHtml += `  </div>`;
+    reportHtml += `  <div class="stat-item">`;
+    reportHtml += `    <span class="stat-label">Avg. Evening Attendance (7d)</span>`;
+    reportHtml += `    <span class="stat-value">${avgEveningPercentage}${avgEveningPercentage !== "N/A" ? "%" : ""}</span>`;
+    reportHtml += `  </div>`;
+    reportHtml += `</div>`;
 
     reportHtml += `
         <div class="chart-container">
@@ -522,7 +542,6 @@ async function generateAttendanceReport(villageName = "all") {
 
     if (window.dailyBarChartInstance) window.dailyBarChartInstance.destroy();
 
-    // Ensure Chart.js is loaded and canvas element exists
     const canvasElement = document.getElementById('dailyAttendanceBarChart');
     if (typeof Chart === 'undefined' || !canvasElement) {
         console.error("Chart.js not loaded or canvas element 'dailyAttendanceBarChart' not found.");
@@ -530,7 +549,6 @@ async function generateAttendanceReport(villageName = "all") {
         return;
     }
     const dailyCtx = canvasElement.getContext('2d');
-
 
     window.dailyBarChartInstance = new Chart(dailyCtx, {
         type: 'bar',
@@ -575,8 +593,8 @@ async function generateAttendanceReport(villageName = "all") {
                     stacked: true,
                     beginAtZero: true,
                     title: { display: true, text: 'Number of Students Marked' },
-                    ticks: { // Dynamic stepSize based on max value of students involved in any session
-                        stepSize: Math.max(1, Math.ceil(Math.max(...morningPresentData, ...morningAbsentData, ...eveningPresentData, ...eveningAbsentData) / 10)) // Aim for ~10 ticks
+                    ticks: { 
+                        stepSize: Math.max(1, Math.ceil(Math.max(1, ...morningPresentData, ...morningAbsentData, ...eveningPresentData, ...eveningAbsentData) / 10)) 
                     }
                 }
             },
@@ -764,7 +782,6 @@ async function generateAttendanceReport(villageName = "all") {
             const allAttendance = await makeNetlifyFunctionRequest('GET', null, { sheet: 'Attendance', student_name: studentName, village: village });
     
             const recentAttendance = allAttendance.filter(record => {
-                // Ensure record.date is valid before creating a Date object
                 if (!record.date || typeof record.date !== 'string') return false;
                 try {
                     const recordDate = new Date(record.date);
@@ -793,7 +810,6 @@ async function generateAttendanceReport(villageName = "all") {
     function createPercentageRingSvg(percentage) {
         const radius = 20; 
         const circumference = 2 * Math.PI * radius;
-        // Ensure percentage is a number, default to 0 if not
         const numericPercentage = typeof percentage === 'number' ? percentage : 0;
         const offset = circumference - (numericPercentage / 100) * circumference;
         const ringColorClass = numericPercentage >= 60 ? 'blue-ring' : 'red-ring';
@@ -841,8 +857,8 @@ async function generateAttendanceReport(villageName = "all") {
                 if (!studentData) { 
                     if (header === 'village' && user && user.assignedVillages && user.assignedVillages.length === 1) { 
                         value = user.assignedVillages[0];
-                    } else if (header === 'village' && user && user.village && !user.assignedVillages.includes(user.village)) { 
-                         value = user.village; // Fallback for teacher's single village if not in assigned (edge case)
+                    } else if (header === 'village' && user && user.village && user.assignedVillages && !user.assignedVillages.includes(user.village)) { 
+                         value = user.village; 
                     }
                     if (header === 'record_added') {
                         value = new Date().toISOString().split('T')[0]; 
